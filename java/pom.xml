@@ -37,6 +37,12 @@
       <groupId>io.vertx</groupId>
       <artifactId>vertx-pg-client</artifactId>
     </dependency>
+    <!-- Parseur JSON en streaming (/cpu/commissions). Déjà tiré par vertx-core ; version alignée
+         par vertx-dependencies (2.21.7, branche LTS de Jackson). -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+    </dependency>
     <!-- Transport natif epoll (Linux) : moins d'appels système et d'allocations que NIO -->
     <dependency>
       <groupId>io.netty</groupId>

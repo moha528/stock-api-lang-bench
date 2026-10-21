@@ -1,6 +1,7 @@
 //! Point d'entrée : lit la config, crée le pool Postgres, démarre le serveur HTTP.
 
 mod db;
+mod heavy;
 mod routes;
 
 use std::env;
@@ -44,6 +45,7 @@ async fn main() {
             let _ = tcp.set_nodelay(true);
         });
 
+    heavy::init_pool();
     eprintln!("stock-api (rust) en écoute sur 0.0.0.0:{port}");
     axum::serve(listener, routes::router(pool))
         .with_graceful_shutdown(shutdown_signal())

@@ -1,6 +1,6 @@
--XX:+UseSerialGC
 -XX:MaxRAMPercentage=70
 -XX:InitialRAMPercentage=70
+-XX:NewRatio=1
 -XX:+UseCompactObjectHeaders
 -XX:+ExitOnOutOfMemoryError
 --enable-native-access=ALL-UNNAMED

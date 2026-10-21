@@ -25,6 +25,7 @@ pub fn router(pool: Pool) -> Router {
         .route("/products/{id}", get(get_product))
         .route("/products/{id}/movements", post(create_movement))
         .route("/stats", get(stats))
+        .merge(crate::heavy::router())
         .fallback(not_found)
         .method_not_allowed_fallback(not_found)
         .with_state(pool)
@@ -34,7 +35,7 @@ pub fn router(pool: Pool) -> Router {
 
 const APPLICATION_JSON: HeaderValue = HeaderValue::from_static("application/json");
 
-fn raw_json(status: StatusCode, body: Body) -> Response {
+pub(crate) fn raw_json(status: StatusCode, body: Body) -> Response {
     let mut res = Response::new(body);
     *res.status_mut() = status;
     res.headers_mut().insert(header::CONTENT_TYPE, APPLICATION_JSON);
@@ -53,7 +54,7 @@ fn json<T: Serialize>(status: StatusCode, value: &T, capacity: usize) -> Respons
     }
 }
 
-fn invalid_input() -> Response {
+pub(crate) fn invalid_input() -> Response {
     static_json(StatusCode::BAD_REQUEST, br#"{"error":"invalid_input"}"#)
 }
 
@@ -69,7 +70,7 @@ fn insufficient_stock() -> Response {
     static_json(StatusCode::CONFLICT, br#"{"error":"insufficient_stock"}"#)
 }
 
-fn internal_error() -> Response {
+pub(crate) fn internal_error() -> Response {
     static_json(StatusCode::INTERNAL_SERVER_ERROR, br#"{"error":"internal_error"}"#)
 }
 

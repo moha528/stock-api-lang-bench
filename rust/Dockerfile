@@ -7,6 +7,7 @@ WORKDIR /app
 # 1) Dépendances seules, avec un main factice : cette couche reste en cache tant que
 #    Cargo.toml / Cargo.lock ne changent pas.
 COPY Cargo.toml Cargo.lock ./
+COPY .cargo ./.cargo
 RUN mkdir src && echo 'fn main() {}' > src/main.rs \
  && cargo build --release --locked \
  && rm -rf src target/release/stock-api* target/release/deps/stock_api* target/release/.fingerprint/stock-api-*

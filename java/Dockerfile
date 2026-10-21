@@ -16,17 +16,23 @@ RUN MODULES="$(jdeps --ignore-missing-deps --multi-release 25 --print-module-dep
         --strip-debug --no-man-pages --no-header-files --compress=zip-6 \
         --output /jre
 
-# ---- 2. Image finale : Alpine + JRE jlinké + cache AOT ----
+# ---- 2. Image finale : Alpine + JRE jlinké + caches AOT ----
 FROM alpine:3.22
 ENV JAVA_HOME=/jre PATH=/jre/bin:$PATH
 COPY --from=build /jre /jre
 COPY --from=build /app /app
 COPY jvm.options /app/jvm.options
+COPY --chmod=755 entrypoint.sh /app/entrypoint.sh
 WORKDIR /app
-# Exécution d'entraînement (JDK 25, JEP 483/514/515) : classes pré-chargées/liées et profils
-# de méthodes enregistrés dans app.aot, réutilisés à chaque démarrage. Mêmes options JVM qu'en prod.
-RUN AOT_TRAINING=1 PORT=18080 java @/app/jvm.options -XX:AOTCacheOutput=/app/app.aot -jar /app/app.jar
+# Exécutions d'entraînement (JDK 25, JEP 483/514/515) : classes pré-chargées/liées et profils de
+# méthodes enregistrés, réutilisés à chaque démarrage. Un cache par GC, car entrypoint.sh choisit le
+# GC selon le nombre de CPU ; mêmes options qu'en production, mémoire ramenée à celle du conteneur.
+RUN AOT_TRAINING=1 PORT=18080 java @/app/jvm.options -XX:+UseSerialGC -XX:MaxRAM=512m \
+        -XX:AOTCacheOutput=/app/serial.aot -jar /app/app.jar \
+ && AOT_TRAINING=1 PORT=18080 java @/app/jvm.options -XX:+UseParallelGC -XX:MaxRAM=512m \
+        -XX:AOTCacheOutput=/app/parallel.aot -jar /app/app.jar
 RUN adduser -D -H -u 10001 app
 USER app
 EXPOSE 8080
-ENTRYPOINT ["java", "@/app/jvm.options", "-XX:AOTCache=/app/app.aot", "-jar", "/app/app.jar"]
+# entrypoint.sh finit par « exec java » : java reste le PID 1 et reçoit SIGTERM.
+ENTRYPOINT ["/app/entrypoint.sh"]

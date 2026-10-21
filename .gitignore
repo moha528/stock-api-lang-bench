@@ -4,7 +4,7 @@ rust/target/
 java/target/
 
 # Résumés k6 bruts et logs de run (les RESULTS.md et results.json sont publiés)
-bench/*/raw/
+bench/**/raw/
 *.log
 
 # Notes privées, hors du dépôt public

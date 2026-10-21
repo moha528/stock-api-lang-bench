@@ -1,0 +1,7 @@
+# x86-64-v3 (AVX2, BMI1/2, LZCNT, MOVBE) : tout Intel depuis Haswell (2013), tout AMD depuis
+# Zen (2017), toutes les VM cloud courantes. Pas `native` : l'image doit tourner ailleurs.
+# FMA fait partie de v3 mais rustc/LLVM ne contracte jamais a*b+c sans demande explicite :
+# le Monte-Carlo reste bit à bit identique. SHA-NI n'est pas dans v3 : sha2 le détecte à
+# l'exécution (cpufeatures). Limité à la cible Linux x86_64 du conteneur.
+[target.x86_64-unknown-linux-gnu]
+rustflags = ["-C", "target-cpu=x86-64-v3"]

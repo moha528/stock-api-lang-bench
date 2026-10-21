@@ -19,25 +19,27 @@ import java.util.concurrent.TimeUnit;
 final class Api extends VerticleBase implements Handler<HttpServerRequest> {
 
   private static final CharSequence CONTENT_TYPE = HttpHeaders.CONTENT_TYPE;
-  private static final CharSequence APPLICATION_JSON = HttpHeaders.createOptimized("application/json");
+  static final CharSequence APPLICATION_JSON = HttpHeaders.createOptimized("application/json");
 
   private static final Buffer HEALTH = Buffer.buffer("{\"status\":\"ok\"}");
-  private static final Buffer INVALID_INPUT = Buffer.buffer("{\"error\":\"invalid_input\"}");
-  private static final Buffer NOT_FOUND = Buffer.buffer("{\"error\":\"not_found\"}");
+  static final Buffer INVALID_INPUT = Buffer.buffer("{\"error\":\"invalid_input\"}");
+  static final Buffer NOT_FOUND = Buffer.buffer("{\"error\":\"not_found\"}");
   private static final Buffer CONFLICT = Buffer.buffer("{\"error\":\"conflict\"}");
   private static final Buffer INSUFFICIENT_STOCK = Buffer.buffer("{\"error\":\"insufficient_stock\"}");
-  private static final Buffer INTERNAL = Buffer.buffer("{\"error\":\"internal\"}");
+  static final Buffer INTERNAL = Buffer.buffer("{\"error\":\"internal\"}");
 
   private static final String PRODUCTS = "/products";
   private static final String PRODUCTS_PREFIX = "/products/";
   private static final String MOVEMENTS_SUFFIX = "/movements";
 
   private final Db db;
+  private final Heavy heavy;
   private final int port;
   private HttpServer server;
 
-  Api(Db db, int port) {
+  Api(Db db, Heavy heavy, int port) {
     this.db = db;
+    this.heavy = heavy;
     this.port = port;
   }
 
@@ -85,6 +87,10 @@ final class Api extends VerticleBase implements Handler<HttpServerRequest> {
         else send(req, 404, NOT_FOUND);
       }
       default -> {
+        if (path.startsWith(Heavy.PREFIX)) {
+          heavy.handle(req, path); // /cpu/* : SPEC-heavy.md, calcul sur le pool de workers
+          return;
+        }
         if (!path.startsWith(PRODUCTS_PREFIX)) {
           send(req, 404, NOT_FOUND);
           return;
@@ -197,7 +203,7 @@ final class Api extends VerticleBase implements Handler<HttpServerRequest> {
 
   // ---- helpers ----
 
-  private static void send(HttpServerRequest req, int status, Buffer body) {
+  static void send(HttpServerRequest req, int status, Buffer body) {
     req.response()
         .setStatusCode(status)
         .putHeader(CONTENT_TYPE, APPLICATION_JSON)
