@@ -1,0 +1,1 @@
+{"name":"stock-api-node","version":"1.0.0","private":true,"type":"module","main":"src/index.js","engines":{"node":">=24"},"dependencies":{"postgres":"3.4.9","uWebSockets.js":"https://github.com/uNetworking/uWebSockets.js/archive/refs/tags/v20.71.0.tar.gz"}}

@@ -1,0 +1,8 @@
+# Stock API — Java
+
+- **Pile** : JDK 25 (LTS) + **Vert.x 5.2.2** (`vertx-core` seul, sans vertx-web) + **`vertx-pg-client`** réactif. C'est la pile Java en tête des TechEmpower : boucle d'événements Netty non bloquante, pas de thread par requête, ce qui convient à une machine de 1 vCPU / 512 Mo. Pas de Spring.
+- **Postgres** : client « pipeliné » (`PgBuilder.client()`), `DB_POOL_MAX` connexions, jusqu'à 256 requêtes en vol par connexion, requêtes préparées mises en cache par connexion. Le SQL est celui de `SPEC.md`, mot pour mot.
+- **HTTP** : routage à la main sur `path()` et la méthode, réponses d'erreur pré-encodées, `Content-Type` en en-tête optimisé, transport natif **epoll**, h2c désactivé. Une boucle d'événements par vCPU.
+- **JVM** (`jvm.options`) : **SerialGC**. Sur 1 CPU il n'y a pas de cœur libre pour un GC concurrent, et Serial a les barrières les moins coûteuses. Le tas est fixé à 70 % de la RAM (Initial = Max, ~358 Mo), il reste ~150 Mo pour la métaspace, le code JIT et les buffers directs de Netty. `-XX:+UseCompactObjectHeaders` (JEP 519) donne des en-têtes de 8 octets, donc moins de mémoire et de GC. `ExitOnOutOfMemoryError`, et les vérifications de bornes des buffers Netty sont désactivées.
+- **Démarrage** : **cache AOT** du JDK 25 (JEP 483/514/515), produit pendant le build par une exécution d'entraînement. Le JIT C2 reste actif, pas de native-image.
+- **Image** : build multi-étapes Maven, avec le dépôt `.m2` en cache BuildKit. Le JRE est produit par `jlink` (modules choisis par `jdeps`) sur `alpine:3.22`, tourne sous un utilisateur non root, et `java` est le PID 1 : SIGTERM déclenche l'arrêt gracieux du serveur HTTP, puis du pool.

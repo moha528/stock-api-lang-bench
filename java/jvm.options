@@ -1,0 +1,13 @@
+-XX:+UseSerialGC
+-XX:MaxRAMPercentage=70
+-XX:InitialRAMPercentage=70
+-XX:+UseCompactObjectHeaders
+-XX:+ExitOnOutOfMemoryError
+--enable-native-access=ALL-UNNAMED
+--sun-misc-unsafe-memory-access=allow
+-Dio.netty.buffer.checkBounds=false
+-Dio.netty.buffer.checkAccessible=false
+-Dvertx.disableContextTimings=true
+-Dvertx.disableHttpHeadersValidation=true
+-Dvertx.cacheImmutableHttpResponseHeaders=true
+-Dvertx.internCommonHttpRequestHeadersToLowerCase=true
